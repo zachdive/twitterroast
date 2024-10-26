@@ -6,9 +6,11 @@ export default function Home() {
   const [twitterUrl, setTwitterUrl] = useState('');
   const [roast, setRoast] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleRoast = async () => {
     setIsLoading(true);
+    setError('');
     try {
       const response = await fetch('/api/roast', {
         method: 'POST',
@@ -17,11 +19,25 @@ export default function Home() {
         },
         body: JSON.stringify({ twitterUrl }),
       });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('API route not found. Please check your server configuration.');
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new TypeError("Oops, we haven't got JSON!");
+      }
+
       const data = await response.json();
       setRoast(data.roast);
     } catch (error) {
       console.error('Error generating roast:', error);
-      setRoast('Failed to generate roast. Please try again.');
+      setError(error instanceof Error ? error.message : 'An unexpected error occurred');
+      setRoast('');
     } finally {
       setIsLoading(false);
     }
@@ -35,21 +51,31 @@ export default function Home() {
           <input
             type="text"
             value={twitterUrl}
-            onChange={(e) => setTwitterUrl(e.target.value)}
+            onChange={(e) => {
+              setTwitterUrl(e.target.value);
+              console.log('Updated Twitter URL:', e.target.value);
+            }}
             placeholder="Enter Twitter URL"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <button
           onClick={handleRoast}
-          disabled={isLoading || !twitterUrl}
+          disabled={!twitterUrl}
           className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300 ease-in-out disabled:bg-gray-400 disabled:cursor-not-allowed"
+          onMouseEnter={() => console.log('Twitter URL:', twitterUrl, 'Button disabled:', !twitterUrl)}
         >
           {isLoading ? 'Roasting...' : 'Roast This Twitter'}
         </button>
         {isLoading && (
           <div className="mt-4 text-center text-gray-600">
             Generating roast...
+          </div>
+        )}
+        {error && (
+          <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-md">
+            <h2 className="font-semibold mb-2">Error:</h2>
+            <p>{error}</p>
           </div>
         )}
         {roast && (

@@ -6,9 +6,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Removed 'output: export' to support API routes
-  // Ensure API routes are treated as serverless functions
-  trailingSlash: true,
+  // Remove 'output: export' to support API routes
+  // Configure for serverless deployment on Netlify
 }
 
 module.exports = nextConfig
