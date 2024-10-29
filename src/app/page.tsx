@@ -12,7 +12,7 @@ export default function Home() {
     setIsLoading(true);
     setError('');
     try {
-      const response = await fetch('/api/roast', {
+      const response = await fetch('/.netlify/functions/api', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
